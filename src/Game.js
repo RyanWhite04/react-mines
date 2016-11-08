@@ -1,90 +1,103 @@
-import React from 'react';
-import Paper from 'material-ui/Paper';
-import Card from 'material-ui/Card';
-import Radium from 'radium';
-import color from 'color';
+import React, { Component } from 'react';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import Grid from './Grid.js';
 
-const style = {
-  tile: {
-    // background: 'blue',
-    margin: 10,
-    height: 40,
-    width: 40,
-    display: 'inline-block',
-    ':hover': {
-      width: 30,
-      height: 30,
-      background: 'grey',
-    },
-  },
-  game: {
-    ':hover': {
-      background: color('#0074d9').lighten(0.2).hexString(),
-    },
-  },
-};
+class Game extends Component {
 
-function open(state) {
-  return () => {
-    console.log(this)
-    console.log(state);
-  }
-}
-
-const Tile = Radium(({
-  mine=false,
-  revealed=false
-}) =>
-  <Paper
-    style={style.tile}
-    zDepth={3}
-    onClick={open(revealed)}
-    circle
-  >
-    {revealed ? 'Y' : 'N'}
-  </Paper>
-)
-
-const Game = Radium(({
-  across=4,
-  down=4,
-  density=0.5,
-}) =>
-  <Card
-    style={style.game}
-    zDepth={1}
-    // onClick={gameClick(this)}
-  >
-    {fill(make(across, down), density)}
-  </Card>
-)
-
-function make(across, down) {
-  return [...Array(down)].map(i => [...Array(across)].map(i => ({
-    mine: false,
-  })))
-}
-
-function fill(tiles, density) {
-
-  const shuffle = a => {
-      for (let i = a.length; i; i--) {
-          let j = Math.floor(Math.random() * i);
-          [a[i - 1], a[j]] = [a[j], a[i - 1]];
-      }
-      return a;
+  constructor(props) {
+    super(props);
+    var {rows, cols, density} = props;
+    this.make = this.make.bind(this);
+    this.tiles = this.fill(this.make(rows, cols), density);
+    this.state = { history: [] };
   }
 
-  var rows = tiles.length;
-  var count = rows * tiles[0].length;
-  shuffle([...Array(count).keys()])
-    .slice(0, Math.ceil(count * density))
-    .forEach(i => tiles[~~(i/rows)][i%rows].mine = true)
-  return tiles.map((row, i) =>
-    <div key={i}>
-      {row.map((props, i) => <Tile key={i} {...props}/>)}
-    </div>
-  );
+  update(i, j) {
+    return () => this.setState({
+      history: this.state.history.concat([i, j]),
+    });
+  }
+
+  make(rows, cols) {
+
+    var onClick = (i, j) => () => {
+      this.setState({
+        history: this.state.history.concat([[i, j]]),
+      });
+    };
+
+    return [...Array(rows).keys()].map(i => {
+      return [...Array(cols).keys()].map(j => {
+        return {
+          open: false,
+          mine: false,
+          flag: false,
+          count: 0,
+          onClick: onClick(i, j),
+        };
+      })
+    })
+  }
+
+  fill(tiles, density) {
+
+    function shuffle(a) {
+        for (let i = a.length; i; i--) {
+            let j = Math.floor(Math.random() * i);
+            [a[i - 1], a[j]] = [a[j], a[i - 1]];
+        }
+        return a;
+    }
+
+    var rows = tiles.length;
+    var cols = tiles[0].length;
+    var count = rows * cols;
+    shuffle([...Array(count).keys()])
+      .slice(0, Math.ceil(count * density))
+      .forEach(i => {
+        var row = ~~(i / cols);
+        var col = i % cols;
+        [-1, 0, 1].forEach(i => {
+          return [-1, 0, 1].forEach(j => {
+            if (i || j) {
+              tiles[row + i] && tiles[row + i][col + j] && tiles[row + i][col + j].count++;
+            } else {
+              tiles[row][col].mine = true;
+            }
+          });
+        });
+      })
+    return tiles;
+  }
+
+  render() {
+    return <MuiThemeProvider>
+      <Grid tiles={move(this.tiles, this.state.history)} />
+    </MuiThemeProvider>
+  }
+
+}
+
+function move(tiles, history, index = 0) {
+  return (history && index < history.length) ?
+    move(open(tiles, history[index]), history, ++index) :
+    tiles;
+}
+
+function open(tiles, [i, j]) {
+  if (tiles[i] && tiles[i][j] && !tiles[i][j].open) {
+    if (tiles[i][j].mine) {
+      tiles.forEach(row => row.forEach(tile => tile.open = true));
+    } else {
+      tiles[i][j].open = true;
+      tiles[i][j].count || [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0,  -1], [0,  0], [0,  1],
+        [1,  -1], [1,  0], [1,  1],
+      ].map(([x, y]) => open(tiles, [x + i, y + j]));
+    }
+  }
+  return tiles;
 }
 
 export default Game
