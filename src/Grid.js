@@ -1,7 +1,6 @@
 import React from 'react';
 import Paper from 'material-ui/Paper';
-import Tile from './Tile.js';
-// import color from 'color';
+import Tile from './Tile';
 
 const style = {
   margin: '20px',

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import Grid from './Grid.js';
+import Grid from './Grid';
 
 class Game extends Component {
 
