@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Paper } from 'material-ui';
 import Grid from './Grid';
 
 class Game extends Component {
@@ -27,9 +28,18 @@ class Game extends Component {
     return true
   }
 
-  render = () => <Grid tiles={move(count(fill(this.state.mines, (i, j) => () =>
-    this.setState({ moves: [...this.state.moves, [i, j]] })
-  )), this.state.moves)} />
+  render = () =>
+    <Paper style={{ ...this.props.style,
+      margin: '20px',
+      display: 'flex',
+      flexDirection: 'column',
+    }} zDepth={1}>
+      {this.props.children}
+      <Grid tiles={move(count(fill(this.state.mines, (i, j) => () =>
+        this.setState({ moves: [...this.state.moves, [i, j]] })
+      )), this.state.moves)} />
+    </Paper>
+
 }
 
 function move(tiles, history, index = 0) {
