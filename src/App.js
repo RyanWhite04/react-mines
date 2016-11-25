@@ -55,7 +55,7 @@ class App extends Component {
         Rows
         <Slider style={style.slider}
           min={1}
-          max={10}
+          max={100}
           step={1}
           value={this.state.rows}
           onChange={this.setValue('rows')}
@@ -63,38 +63,21 @@ class App extends Component {
         Columns
         <Slider style={style.slider}
           min={1}
-          max={10}
+          max={100}
           step={1}
           value={this.state.cols}
           onChange={this.setValue('cols')}
           label='Columns' />
-        <RaisedButton onTouchTap={this.newGame}>New Game</RaisedButton>
+        {/* <RaisedButton onTouchTap={this.reset()}>Restart</RaisedButton>
+        <RaisedButton onTouchTap={this.reset(false)}>New Game</RaisedButton> */}
       </Drawer>
-      <Game style={{
-        padding: 30,
-      }} mines={pick(make(this.state.rows, this.state.cols), this.state.density)}/>
+      <Game
+        style={{ padding: 30 }}
+        rows={this.state.rows}
+        cols={this.state.cols}
+        density={this.state.density}
+      />
     </div></MuiThemeProvider>;
-}
-
-function make(rows, cols) {
-  return [...Array(rows)].map(() => [...Array(cols)].fill(0))
-}
-
-function pick(tiles, density) {
-  var rows = tiles.length;
-  var cols = tiles[0].length;
-  shuffle([...Array(rows * cols).keys()])
-    .slice(0, Math.ceil(rows * cols * density))
-    .forEach(i => tiles[~~(i / cols)][i % cols] = true)
-  return tiles;
-}
-
-function shuffle(a) {
-  for (let i = a.length; i; i--) {
-    let j = Math.floor(Math.random() * i);
-    [a[i - 1], a[j]] = [a[j], a[i - 1]];
-  }
-  return a;
 }
 
 export default App;

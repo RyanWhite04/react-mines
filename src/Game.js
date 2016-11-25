@@ -5,15 +5,29 @@ class Game extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { moves: [] };
+    this.state = {
+      moves: [],
+      mines: plant(props)
+    };
   }
 
-  componentWillReceiveProps(props) {
-    console.log('Game', this.props, props, this.props.mines === props.mines);
-    // this.props.mines === props.mines || this.setState({ history: [] });
+  reset = fresh => fresh ? this.setState({
+    mines: plant(this.props),
+    moves: [],
+  }) : this.setState({ moves: [] })
+
+  shouldComponentUpdate = (props, state) => {
+    if (props.rows !== this.props.rows ||
+      props.cols !== this.props.cols ||
+      props.density !== this.props.density) {
+        state.mines = plant(props);
+        state.moves = [];
+        // state = { ...state, mines: plant(props), moves: [] };
+    }
+    return true
   }
 
-  render = () => <Grid tiles={move(count(fill(this.props.mines, (i, j) => () =>
+  render = () => <Grid tiles={move(count(fill(this.state.mines, (i, j) => () =>
     this.setState({ moves: [...this.state.moves, [i, j]] })
   )), this.state.moves)} />
 }
@@ -55,6 +69,23 @@ function fill(mines, onClick) {
     count: 0,
     onClick: onClick(i, j),
   })))
+}
+
+function plant({ rows, cols, density }) {
+
+  function shuffle(a) {
+    for (let i = a.length; i; i--) {
+      let j = Math.floor(Math.random() * i);
+      [a[i - 1], a[j]] = [a[j], a[i - 1]];
+    }
+    return a;
+  }
+
+  var tiles = [...Array(rows)].map(() => [...Array(cols)].fill(0))
+  shuffle([...Array(rows * cols).keys()])
+    .slice(0, Math.ceil(rows * cols * density))
+    .forEach(i => tiles[~~(i / cols)][i % cols] = true)
+  return tiles;
 }
 
 export default Game
