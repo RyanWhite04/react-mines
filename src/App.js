@@ -40,6 +40,9 @@ class App extends Component {
           display: 'flex',
           // background: colors.cyan500
         }}
+        tileStyle={{
+          background: colors.cyan500
+        }}
         rows={this.state.rows}
         cols={this.state.cols}
         density={this.state.density} >

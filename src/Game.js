@@ -91,7 +91,7 @@ function plant({ rows, cols, density }) {
     return a;
   }
 
-  var tiles = [...Array(rows)].map(() => [...Array(cols)].fill(0))
+  var tiles = [...Array(rows)].map((r, i) => [...Array(cols)].fill(false))
   shuffle([...Array(rows * cols).keys()])
     .slice(0, Math.ceil(rows * cols * density))
     .forEach(i => tiles[~~(i / cols)][i % cols] = true)
