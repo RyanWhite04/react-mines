@@ -1,12 +1,45 @@
 import React, { Component } from 'react';
 import { MuiThemeProvider, colors } from 'material-ui/styles';
-import { Drawer, AppBar, Slider, RaisedButton } from 'material-ui';
 import Game from './Game';
+import './App.css';
+// import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
 import injectTapEventPlugin from 'react-tap-event-plugin';
+import {
+  Drawer,
+  AppBar,
+  Slider,
+  RaisedButton,
+  IconButton,
+  // IconMenu,
+  // MenuItem,
+} from 'material-ui';
 
 // Needed for onTouchTap
 // http://stackoverflow.com/a/34015469/988941
 injectTapEventPlugin();
+
+// const RightMenu = props =>
+//   <IconMenu
+//     iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}
+//     targetOrigin={{ horizontal: 'right', vertical: 'top' }}
+//     anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
+//     >
+//     <MenuItem primaryText="Refresh" />
+//     <MenuItem primaryText="Help" />
+//     <MenuItem primaryText="Sign out" />
+//   </IconMenu>
+
+const GithubLink = props =>
+  <IconButton
+    { ...props }
+    iconClassName="muidocs-icon-custom-github"
+    href="https://github.com/ryanwhite04/react-mines"
+    tooltip="Github"
+    tooltipPosition="bottom-left"
+  />
+
+const Theme = props =>
+  <MuiThemeProvider><div>{props.children}</div></MuiThemeProvider>
 
 class App extends Component {
 
@@ -19,30 +52,25 @@ class App extends Component {
       density: 1/4,
     };
   }
-
   handleToggle = () => this.setState({ open: !this.state.open });
   setValue = key => (e, v) => this.setState({ [key]: v })
   reset = fresh => () => this.refs.game.reset(fresh)
 
   render = () =>
-    <MuiThemeProvider><div>
+    <Theme>
       <AppBar title="React Mines"
-        iconClassNameRight="muidocs-icon-navigation-expand-more"
-        onLeftIconButtonTouchTap={this.handleToggle}
-        zDepth={2}
+        onLeftIconButtonTouchTap={this.handleToggle} zDepth={2}
+        iconElementRight={
+          <GithubLink target="_blank" iconStyle={{ color: 'white'}} />
+        }
       />
       <Drawer
         docked={false} open={this.state.open}
-        onRequestChange={(open) => this.setState({open})} >
+        onRequestChange={open => this.setState({ open })} >
       </Drawer>
-      <Game ref='game' style={{
-          // padding: 30,
-          display: 'flex',
-          // background: colors.cyan500
-        }}
-        tileStyle={{
-          background: colors.cyan500
-        }}
+      <Game ref='game'
+        style={{ display: 'flex' }}
+        tileStyle={{ background: colors.cyan500 }}
         rows={this.state.rows}
         cols={this.state.cols}
         density={this.state.density} >
@@ -73,7 +101,7 @@ class App extends Component {
           value={this.state.cols}
           onChange={this.setValue('cols')} />
       </Game>
-    </div></MuiThemeProvider>;
+    </Theme>
 }
 
 export default App;

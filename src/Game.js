@@ -8,12 +8,12 @@ class Game extends Component {
     super(props);
     this.state = {
       moves: [],
-      mines: plant(props)
+      field: plant(props)
     };
   }
 
   reset = fresh => fresh ? this.setState({
-    mines: plant(this.props),
+    field: plant(this.props),
     moves: [],
   }) : this.setState({ moves: [] })
 
@@ -21,12 +21,16 @@ class Game extends Component {
     if (props.rows !== this.props.rows ||
       props.cols !== this.props.cols ||
       props.density !== this.props.density) {
-        state.mines = plant(props);
+        state.field = plant(props);
         state.moves = [];
         // state = { ...state, mines: plant(props), moves: [] };
     }
     return true
   }
+
+  handleTouchTap = () => this.setState({ open: true })
+
+  handleRequestClose = () => this.setState({ open: false })
 
   render = () =>
     <Paper style={{ ...this.props.style,
@@ -35,7 +39,7 @@ class Game extends Component {
       flexDirection: 'column',
     }} zDepth={1}>
       {this.props.children}
-      <Grid tiles={move(count(fill(this.state.mines, (i, j) => () =>
+      <Grid tiles={move(count(fill(this.state.field, (i, j) => () =>
         this.setState({ moves: [...this.state.moves, [i, j]] })
       )), this.state.moves)} />
     </Paper>
