@@ -1,29 +1,54 @@
 import React, { Component } from 'react';
-import { Paper } from 'material-ui';
 import Grid from './Grid';
 
-class Game extends Component {
+export default class Game extends Component {
 
   constructor(props) {
     super(props);
+
+    this.tileEvents = {
+
+      onClick: (i, j) => e => this.setState({
+        opens: [...this.state.opens, [i, j]],
+      }),
+
+      onContextMenu: (i, j) => e => {
+        e.preventDefault();
+        var compare = move => JSON.stringify(move) === JSON.stringify([i, j]);
+        var index = this.state.flags.findIndex(compare);
+        console.log('contextMenu', { index });
+        if (index < 0) {
+          this.setState({ flags: [...this.state.flags, [i, j]] })
+        } else {
+          var flags = this.state.flags.slice(); //copy array
+          flags.splice(index, 1); //remove element
+          this.setState({ flags }); //update state
+        }
+      },
+
+    };
+
     this.state = {
-      moves: [],
-      field: plant(props)
+      opens: [],
+      flags: [],
+      field: plant(props, this.tileEvents),
     };
   }
 
   reset = fresh => fresh ? this.setState({
-    field: plant(this.props),
-    moves: [],
-  }) : this.setState({ moves: [] })
+    field: plant(this.props, this.tileEvents),
+    opens: [],
+    flags: [],
+  }) : this.setState({ opens: [], flags: [] })
 
   shouldComponentUpdate = (props, state) => {
+    console.log('shouldComponentUpdate', { props, state })
     if (props.rows !== this.props.rows ||
       props.cols !== this.props.cols ||
       props.density !== this.props.density) {
-        state.field = plant(props);
-        state.moves = [];
-        // state = { ...state, mines: plant(props), moves: [] };
+        state.field = plant(props, this.tileEvents);
+        state.opens = [];
+        state.flags = [];
     }
     return true
   }
@@ -32,38 +57,51 @@ class Game extends Component {
 
   handleRequestClose = () => this.setState({ open: false })
 
-  render = () =>
-    <Paper style={{ ...this.props.style,
+  render = () => {
+
+    var tiles = move(move(this.state.field.map(row => row.map(tile =>
+      ({ ...tile, flag: false })
+    )), this.state.opens, open), this.state.flags, flag)
+
+
+    return <div style={{ ...this.props.style,
       margin: '20px',
       display: 'flex',
       flexDirection: 'column',
-    }} zDepth={1}>
+    }} >
       {this.props.children}
-      <Grid tiles={move(count(fill(this.state.field, (i, j) => () =>
-        this.setState({ moves: [...this.state.moves, [i, j]] })
-      )), this.state.moves)} />
-    </Paper>
-
-}
-
-function move(tiles, history, index = 0) {
-  return (history && index < history.length) ?
-    move(open(tiles, history[index]), history, ++index) :
-    tiles;
-}
-
-function open(last, [i, j]) {
-  if (last[i] && last[i][j] && !last[i][j].open) {
-    if (last[i][j].mine) {
-      last = last.map(row => row.map(tile => ({...tile, open: true})));
-    } else {
-      last[i][j] = {...last[i][j], open: true};
-      last[i][j].count || [-1, 0, 1].map(x => [-1, 0, 1].map(y =>
-        open(last, [x + i, y + j])
-      ))
-    }
+      <Grid tiles={tiles} />
+    </div>
   }
-  return last;
+}
+
+function plant({ rows, cols, density }, { onClick, onContextMenu }) {
+
+  var tiles = [...Array(Number(rows))].map((r, i) =>
+    [...Array(Number(cols))].map((c, j) =>
+      ({
+        mine: false,
+        flag: false,
+        open: false,
+        count: 0,
+        onClick: onClick(i, j),
+        onContextMenu: onContextMenu(i, j),
+      })
+    )
+  );
+
+  shuffle([...Array(rows * cols).keys()])
+    .slice(0, Math.ceil(rows * cols * density))
+    .forEach(i => tiles[~~(i / cols)][i % cols].mine = true)
+  return count(tiles);
+}
+
+function shuffle(a) {
+  for (let i = a.length; i; i--) {
+    let j = Math.floor(Math.random() * i);
+    [a[i - 1], a[j]] = [a[j], a[i - 1]];
+  }
+  return a;
 }
 
 function count(tiles) {
@@ -77,29 +115,27 @@ function count(tiles) {
   return tiles;
 }
 
-function fill(mines, onClick) {
-  return mines.map((row, i) => row.map((mine, j) => ({
-    mine,
-    count: 0,
-    onClick: onClick(i, j),
-  })))
+function move(tiles, moves, action, i = 0) {
+  return (moves && i < moves.length) ?
+    move(action(tiles, moves[i]), moves, action, ++i) :
+    tiles;
 }
 
-function plant({ rows, cols, density }) {
-
-  function shuffle(a) {
-    for (let i = a.length; i; i--) {
-      let j = Math.floor(Math.random() * i);
-      [a[i - 1], a[j]] = [a[j], a[i - 1]];
+function open(tiles, [i, j]) {
+  if (tiles[i] && tiles[i][j] && !tiles[i][j].open) {
+    if (tiles[i][j].mine) {
+      tiles = tiles.map(row => row.map(tile => ({...tile, open: true})));
+    } else {
+      tiles[i][j] = {...tiles[i][j], open: true};
+      tiles[i][j].count || [-1, 0, 1].map(x => [-1, 0, 1].map(y =>
+        open(tiles, [x + i, y + j])
+      ))
     }
-    return a;
   }
-
-  var tiles = [...Array(rows)].map((r, i) => [...Array(cols)].fill(false))
-  shuffle([...Array(rows * cols).keys()])
-    .slice(0, Math.ceil(rows * cols * density))
-    .forEach(i => tiles[~~(i / cols)][i % cols] = true)
   return tiles;
 }
 
-export default Game
+function flag(tiles, [i, j]) {
+  tiles[i][j].flag = true;
+  return tiles;
+}
