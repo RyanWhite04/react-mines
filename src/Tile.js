@@ -50,10 +50,12 @@ const Tile = ({
   count = 0,
   onClick = () => console.log('leftClick'),
   onContextMenu = () => console.log('rightClick'),
+  onKeyPress = () => console.log('keyPress'),
 }) =>
   <Paper style={style({mine, open, flag, count})}
     onClick={onClick}
     onContextMenu={onContextMenu}
+    onKeyDown={onKeyPress}
     zDepth={open ? 1 : 2} >
     {open ? mine ? <Mine /> : count : flag && <Flag />}
   </Paper>

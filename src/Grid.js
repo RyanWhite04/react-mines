@@ -6,6 +6,9 @@ const Grid = ({ tiles }) =>
     margin: '20px',
     display: 'flex',
     flexDirection: 'column',
+    overflowX: 'scroll',
+    overflowY: 'hidden',
+    padding: '20px',
   }} >
     {tiles.map((row, i) =>
       <div key={i} style={{

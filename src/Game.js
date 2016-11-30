@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+// import keydown from 'react-keydown';
 import Grid from './Grid';
 
 export default class Game extends Component {
@@ -26,6 +27,10 @@ export default class Game extends Component {
         }
       },
 
+      onKeyPress: (i, j) => e => {
+        console.log({ i, j, e });
+      },
+
     };
 
     this.state = {
@@ -34,6 +39,13 @@ export default class Game extends Component {
       field: plant(props, this.tileEvents),
     };
   }
+
+  // componentWillReceiveProps({ keydown }) {
+  //   if (keydown.event) {
+  //     // inspect the keydown event and decide what to do
+  //     console.log( keydown.event.which );
+  //   }
+  // }
 
   reset = fresh => fresh ? this.setState({
     field: plant(this.props, this.tileEvents),
@@ -75,7 +87,7 @@ export default class Game extends Component {
   }
 }
 
-function plant({ rows, cols, density }, { onClick, onContextMenu }) {
+function plant({ rows, cols, density }, { onClick, onContextMenu, onKeyPress }) {
 
   var tiles = [...Array(Number(rows))].map((r, i) =>
     [...Array(Number(cols))].map((c, j) =>
@@ -86,6 +98,7 @@ function plant({ rows, cols, density }, { onClick, onContextMenu }) {
         count: 0,
         onClick: onClick(i, j),
         onContextMenu: onContextMenu(i, j),
+        onKeyPress: onKeyPress(i, j),
       })
     )
   );

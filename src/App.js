@@ -1,5 +1,5 @@
-import React, {Component} from 'react';
-import {MuiThemeProvider, colors} from 'material-ui/styles';
+import React, { Component } from 'react';
+import { MuiThemeProvider, colors } from 'material-ui/styles';
 import Game from './Game';
 import './App.css';
 import ActionAutoRenew from 'material-ui/svg-icons/action/autorenew';
@@ -29,11 +29,18 @@ injectTapEventPlugin();
 //     <MenuItem primaryText="Sign out" />
 //   </IconMenu>
 
-const GithubLink = props => <IconButton { ...props } iconClassName="muidocs-icon-custom-github" href="https://github.com/ryanwhite04/react-mines" tooltip="Github" tooltipPosition="bottom-left"/>
+const GithubLink = props =>
+  <IconButton { ...props }
+    iconClassName="muidocs-icon-custom-github"
+    href="https://github.com/ryanwhite04/react-mines"
+    tooltip="Github"
+    tooltipPosition="bottom-left"
+    />
 
-const Theme = props => <MuiThemeProvider>
-  <div>{props.children}</div>
-</MuiThemeProvider>
+const Theme = props =>
+  <MuiThemeProvider>
+    <div>{props.children}</div>
+  </MuiThemeProvider>
 
 class App extends Component {
 
