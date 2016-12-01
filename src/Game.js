@@ -7,19 +7,27 @@ export default class Game extends Component {
   constructor(props) {
     super(props);
 
+    window.addEventListener('keydown', ({ which }) => {
+        // inspect the keydown event and decide what to do
+        (which === 68 || which === 37) ?
+          this.tileEvents.onClick(this.state.where)() :
+          (which === 70 || which === 39) ?
+            this.tileEvents.onContextMenu(this.state.where)() :
+            console.log('Key not assigned');
+    })
+
     this.tileEvents = {
 
-      onClick: (i, j) => e => this.setState({
-        opens: [...this.state.opens, [i, j]],
+      onClick: where => e => this.setState({
+        opens: [...this.state.opens, where],
       }),
 
-      onContextMenu: (i, j) => e => {
-        e.preventDefault();
-        var compare = move => JSON.stringify(move) === JSON.stringify([i, j]);
+      onContextMenu: where => e => {
+        e && e.preventDefault();
+        var compare = move => JSON.stringify(move) === JSON.stringify(where);
         var index = this.state.flags.findIndex(compare);
-        console.log('contextMenu', { index });
         if (index < 0) {
-          this.setState({ flags: [...this.state.flags, [i, j]] })
+          this.setState({ flags: [...this.state.flags, where] })
         } else {
           var flags = this.state.flags.slice(); //copy array
           flags.splice(index, 1); //remove element
@@ -27,14 +35,19 @@ export default class Game extends Component {
         }
       },
 
-      onKeyPress: (i, j) => e => {
-        console.log({ i, j, e });
+      onKeyPress: where => e => {
+        console.log({ where, e });
       },
+
+      onMouseEnter: where => e => this.setState({ where }),
+
+      onMouseLeave: where => e => this.setState({ where: [] }),
 
     };
 
     this.state = {
-      opens: [],
+      where: [],  // Current i, j coordinate of tile below mouse
+      opens: [],  // Array of i, j positions of opened(by click) tiles
       flags: [],
       field: plant(props, this.tileEvents),
     };
@@ -43,7 +56,11 @@ export default class Game extends Component {
   // componentWillReceiveProps({ keydown }) {
   //   if (keydown.event) {
   //     // inspect the keydown event and decide what to do
-  //     console.log( keydown.event.which );
+  //     keydown.event.which === 68 ?
+  //       this.tileEvents.onClick(this.state.where)() :
+  //       keydown.event.which === 70 ?
+  //         this.tileEvents.onContextMenu(this.state.where)() :
+  //         console.log('Key not assigned');
   //   }
   // }
 
@@ -54,7 +71,7 @@ export default class Game extends Component {
   }) : this.setState({ opens: [], flags: [] })
 
   shouldComponentUpdate = (props, state) => {
-    console.log('shouldComponentUpdate', { props, state })
+    // console.log('shouldComponentUpdate', { props, state })
     if (props.rows !== this.props.rows ||
       props.cols !== this.props.cols ||
       props.density !== this.props.density) {
@@ -87,7 +104,7 @@ export default class Game extends Component {
   }
 }
 
-function plant({ rows, cols, density }, { onClick, onContextMenu, onKeyPress }) {
+function plant({ rows, cols, density }, events) {
 
   var tiles = [...Array(Number(rows))].map((r, i) =>
     [...Array(Number(cols))].map((c, j) =>
@@ -96,9 +113,9 @@ function plant({ rows, cols, density }, { onClick, onContextMenu, onKeyPress }) 
         flag: false,
         open: false,
         count: 0,
-        onClick: onClick(i, j),
-        onContextMenu: onContextMenu(i, j),
-        onKeyPress: onKeyPress(i, j),
+        events: Object.entries(events).reduce((events, [event, handler]) => ({
+          ...events, [event]: handler([i, j]),
+        }), {}),
       })
     )
   );
@@ -149,6 +166,6 @@ function open(tiles, [i, j]) {
 }
 
 function flag(tiles, [i, j]) {
-  tiles[i][j].flag = true;
+  tiles[i] && tiles[i][j] && (tiles[i][j].flag = true);
   return tiles;
 }

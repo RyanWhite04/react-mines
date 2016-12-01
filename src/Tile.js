@@ -48,14 +48,10 @@ const Tile = ({
   open = false,
   flag = false,
   count = 0,
-  onClick = () => console.log('leftClick'),
-  onContextMenu = () => console.log('rightClick'),
-  onKeyPress = () => console.log('keyPress'),
+  events,
 }) =>
-  <Paper style={style({mine, open, flag, count})}
-    onClick={onClick}
-    onContextMenu={onContextMenu}
-    onKeyDown={onKeyPress}
+  <Paper {...events}
+    style={style({mine, open, flag, count})}
     zDepth={open ? 1 : 2} >
     {open ? mine ? <Mine /> : count : flag && <Flag />}
   </Paper>
